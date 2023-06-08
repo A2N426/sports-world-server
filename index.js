@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 
 
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.a5mfktt.mongodb.net/?retryWrites=true&w=majority1`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.a5mfktt.mongodb.net/?retryWrites=true`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -37,6 +37,8 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
 
         const usersCollection = client.db("summerCamp").collection("users");
 
@@ -66,7 +68,7 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
-        await client.close();
+        // await client.close();
     }
 }
 run().catch(console.dir);
