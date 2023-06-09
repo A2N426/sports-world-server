@@ -41,7 +41,22 @@ async function run() {
         await client.connect();
 
         const usersCollection = client.db("summerCamp").collection("users");
+        const classesCollection = client.db("summerCamp").collection("classes");
+        const instructorCollection = client.db("summerCamp").collection("instructors");
 
+        // get classes
+        app.get("/classes",async(req,res)=>{
+            const result = await classesCollection.find().toArray();
+            res.send(result);
+        })
+
+        // get instructors
+        app.get("/instructors",async(req,res)=>{
+            const result = await instructorCollection.find().toArray();
+            res.send(result);
+        })
+
+        // put users
         app.put("/users/:email", async (req, res) => {
             const email = req.params.email;
             const user = req.body;
