@@ -5,7 +5,7 @@ const app = express();
 const morgan = require('morgan')
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middleware
 const corsOptions = {
@@ -55,11 +55,12 @@ const verifyJWT = (req, res, next) => {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        client.connect();
 
         const usersCollection = client.db("summerCamp").collection("users");
         const classesCollection = client.db("summerCamp").collection("classes");
         const instructorCollection = client.db("summerCamp").collection("instructors");
+        const selectedCollection = client.db("summerCamp").collection("selected");
 
         // jwt token collect
         app.post("/jwt", (req, res) => {
@@ -103,8 +104,9 @@ async function run() {
 
             const query = { email: email };
             const user = await usersCollection.findOne(query);
-            const result = { admin: user?.role === "admin" };
-            res.send(result)
+            const admin = { admin: user?.role === "admin" };
+            const instructor = { instructor: user?.role === "instructor" };
+            res.send({ admin, instructor })
         })
 
         // get all users
@@ -125,8 +127,20 @@ async function run() {
             res.send(false);
         })
 
-
-
+        // selected classes
+        app.patch('/class/status/:id', async (req, res) => {
+            const id = req.params.id
+            const status = req.body.status
+            const query = { _id: new ObjectId(id) }
+            console.log(id, status)
+            const updateDoc = {
+                $set: {
+                    selected: status,
+                },
+            }
+            const update = await classesCollection.updateOne(query, updateDoc)
+            res.send(update)
+        })
 
 
 
