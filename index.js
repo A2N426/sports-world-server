@@ -89,12 +89,6 @@ async function run() {
             res.send({ insertResult, deleteResult });
         })
 
-        // available seats are 1 reduce
-        app.put("/reduced/:id",async(req,res)=>{
-            const id = req.params.id;
-            console.log("from reduced",id)
-        })
-
         // jwt token collect
         app.post("/jwt", (req, res) => {
             const user = req.body;
@@ -121,7 +115,7 @@ async function run() {
             const query = { email: email };
             const options = { upsert: true };
             const updateDoc = {
-                $set:  user 
+                $set: user
             }
             const result = await usersCollection.updateOne(query, updateDoc, options)
             res.send(result)
@@ -189,6 +183,21 @@ async function run() {
             const result = await selectedCollection.updateOne(filter, updatedDoc, options);
             res.send(result)
         });
+
+        // available seats are 1 reduce
+        app.put("/reduced/:id", async (req, res) => {
+            const id = req.params.id;
+            const available_seats = req.body;
+            const query = {_id:new ObjectId(id)}
+            const options = {upsert:true}
+            const updateDoc = {
+                $set:{
+                    available_seats: available_seats.current_seats
+                }
+            }
+            const result = await classesCollection.updateOne(query,updateDoc,options);
+            res.send(result)
+        })
 
         // pay selected
         app.get("/paySelected/:id", async (req, res) => {
