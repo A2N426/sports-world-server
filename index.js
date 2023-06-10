@@ -127,22 +127,44 @@ async function run() {
             res.send(false);
         })
 
-        // selected classes
-        app.patch('/class/status/:id', async (req, res) => {
-            const id = req.params.id
-            const status = req.body.status
-            const query = { _id: new ObjectId(id) }
-            console.log(id, status)
-            const updateDoc = {
-                $set: {
-                    selected: status,
-                },
+        // get all selected
+        app.get("/selected", verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            if (!email) {
+                return res.send([])
             }
-            const update = await classesCollection.updateOne(query, updateDoc)
-            res.send(update)
+
+            const decoded = req.decoded.email;
+            if (email !== decoded) {
+                return res.status(403).send({ error: true, message: "forbidden access" })
+            }
+
+            const query = { email: email };
+            const result = await selectedCollection.find(query).toArray();
+            res.send(result)
         })
 
+        // selected classes
+        app.put('/selected/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const selectedClass = req.body;
+            const options = { upsert: true }
+            const updatedDoc = {
+                $set: selectedClass
+            }
+            const result = await selectedCollection.updateOne(filter, updatedDoc, options);
+            res.send(result)
+        });
 
+        // selected delete method
+        app.delete("/selected/:id", async(req,res)=>{
+            const id = req.params.id;
+            console.log(id)
+            const query = {_id : new ObjectId(id)};
+            const result = await selectedCollection.deleteOne(query);
+            res.send(result); 
+        })
 
 
 
