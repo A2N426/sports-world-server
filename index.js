@@ -63,6 +63,7 @@ async function run() {
         const instructorCollection = client.db("summerCamp").collection("instructors");
         const selectedCollection = client.db("summerCamp").collection("selected");
         const paymentsCollection = client.db("summerCamp").collection("payments");
+        const enrolledCollection = client.db("summerCamp").collection("enrolled");
 
         // payment intent 
         app.post("/create-payment-intent", verifyJWT, async (req, res) => {
@@ -188,17 +189,25 @@ async function run() {
         app.put("/reduced/:id", async (req, res) => {
             const id = req.params.id;
             const available_seats = req.body;
-            const query = {_id:new ObjectId(id)}
-            const options = {upsert:true}
+            console.log("from 192", available_seats)
+            const query = { _id: new ObjectId(id) }
+            const options = { upsert: true }
             const updateDoc = {
-                $set:{
+                $set: {
                     available_seats: available_seats.current_seats
                 }
             }
-            const result = await classesCollection.updateOne(query,updateDoc,options);
+            const result = await classesCollection.updateOne(query, updateDoc, options);
             res.send(result)
         })
 
+        // student enrolled work here
+        app.post("/enrolled", async (req, res) => {
+            const enrolledClass = req.body;
+            console.log("from enrolled", enrolledClass)
+            const result = await enrolledCollection.insertOne(enrolledClass)
+            res.send(result)
+        })
         // pay selected
         app.get("/paySelected/:id", async (req, res) => {
             const id = req.params.id;
