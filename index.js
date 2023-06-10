@@ -6,6 +6,7 @@ const morgan = require('morgan')
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe = require("stripe")(`${process.env.STRIPE_SK}`)
 
 // middleware
 const corsOptions = {
@@ -61,6 +62,38 @@ async function run() {
         const classesCollection = client.db("summerCamp").collection("classes");
         const instructorCollection = client.db("summerCamp").collection("instructors");
         const selectedCollection = client.db("summerCamp").collection("selected");
+        const paymentsCollection = client.db("summerCamp").collection("payments");
+
+        // payment intent 
+        app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ["card"]
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+        // payments post and delete from selected list
+        app.post('/payments', verifyJWT, async (req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentsCollection.insertOne(payment);
+
+            const query = { _id: new ObjectId(payment.selectedClassId) }
+            const deleteResult = await selectedCollection.deleteOne(query)
+
+            res.send({ insertResult, deleteResult });
+        })
+
+        // available seats are 1 reduce
+        app.put("/reduced/:id",async(req,res)=>{
+            const id = req.params.id;
+            console.log("from reduced",id)
+        })
 
         // jwt token collect
         app.post("/jwt", (req, res) => {
@@ -88,7 +121,7 @@ async function run() {
             const query = { email: email };
             const options = { upsert: true };
             const updateDoc = {
-                $set: { user }
+                $set:  user 
             }
             const result = await usersCollection.updateOne(query, updateDoc, options)
             res.send(result)
@@ -157,13 +190,22 @@ async function run() {
             res.send(result)
         });
 
-        // selected delete method
-        app.delete("/selected/:id", async(req,res)=>{
+        // pay selected
+        app.get("/paySelected/:id", async (req, res) => {
             const id = req.params.id;
             console.log(id)
-            const query = {_id : new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
+            const result = await selectedCollection.findOne(query);
+            res.send(result);
+        });
+
+        // selected delete method
+        app.delete("/selected/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log(id)
+            const query = { _id: new ObjectId(id) };
             const result = await selectedCollection.deleteOne(query);
-            res.send(result); 
+            res.send(result);
         })
 
 
