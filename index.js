@@ -90,6 +90,21 @@ async function run() {
             res.send({ insertResult, deleteResult });
         })
 
+        // payment history get
+        // app.get("/payments/:email", async (req, res) => {
+        //     const email = req.params.email;
+        //     const query = { email: email };
+        //     const result = await paymentsCollection.find(query).toArray();
+        //     res.send(result);
+        // })
+        app.get("/payments/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const sortOptions = { date: -1 }; // Sort in descending order based on the "createdAt" field
+            const result = await paymentsCollection.find(query).sort(sortOptions).toArray();
+            res.send(result);
+        });
+
         // jwt token collect
         app.post("/jwt", (req, res) => {
             const user = req.body;
@@ -204,10 +219,18 @@ async function run() {
         // student enrolled work here
         app.post("/enrolled", async (req, res) => {
             const enrolledClass = req.body;
-            console.log("from enrolled", enrolledClass)
             const result = await enrolledCollection.insertOne(enrolledClass)
             res.send(result)
         })
+
+        // get enrolled
+        app.get("/getEnrolled/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await enrolledCollection.find(query).toArray();
+            res.send(result)
+        })
+
         // pay selected
         app.get("/paySelected/:id", async (req, res) => {
             const id = req.params.id;
@@ -225,6 +248,8 @@ async function run() {
             const result = await selectedCollection.deleteOne(query);
             res.send(result);
         })
+
+
 
 
 
