@@ -115,6 +115,7 @@ async function run() {
             res.send(result);
         })
 
+        // feed updated
         app.put("/classes/:id", verifyJWT, async (req, res) => {
             const id = req.params.id;
             const feedback = req.body;
@@ -123,6 +124,21 @@ async function run() {
             const updatedDoc = {
                 $set: {
                     feedback: feedback.feedText
+                }
+            }
+            const result = await classesCollection.updateOne(filter, updatedDoc, options)
+            res.send(result)
+        })
+
+        // status updated
+        app.put("/classesStatus/:id", verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const status = req.body;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    status: status.status
                 }
             }
             const result = await classesCollection.updateOne(filter, updatedDoc, options)
