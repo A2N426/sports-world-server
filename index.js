@@ -177,10 +177,23 @@ async function run() {
             const user = req.body;
             const query = { email: email };
             const options = { upsert: true };
-            const updateDoc = {
+            const updatedDoc = {
                 $set: user
             }
-            const result = await usersCollection.updateOne(query, updateDoc, options)
+            const result = await usersCollection.updateOne(query, updatedDoc, options)
+            res.send(result)
+        })
+
+        // user role handle
+        app.put("/usersRole/:id", async (req, res) => {
+            const id = req.params.id;
+            const role = req.body;
+            const query = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: { role: role.role }
+            }
+            const result = await usersCollection.updateOne(query, updatedDoc, options);
             res.send(result)
         })
 
