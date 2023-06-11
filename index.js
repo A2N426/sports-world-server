@@ -115,15 +115,33 @@ async function run() {
             res.send(result);
         })
 
+        app.put("/classes/:id", verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const feedback = req.body;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    feedback: feedback.feedText
+                }
+            }
+            const result = await classesCollection.updateOne(filter, updatedDoc, options)
+            res.send(result)
+        })
+
         // get classes
         app.get("/classes", async (req, res) => {
-            const query = {status : "approved"}
+            const query = { status: "approved" }
             const result = await classesCollection.find(query).toArray();
+            res.send(result);
+        })
+        app.get("/allClasses", async (req, res) => {
+            const result = await classesCollection.find().toArray();
             res.send(result);
         })
 
         // app get instructor classes
-        app.get("/myClasses/:email",async(req,res)=>{
+        app.get("/myClasses/:email", async (req, res) => {
             const email = req.params.email;
             console.log(email);
             const query = { instructorEmail: email };
