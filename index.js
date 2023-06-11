@@ -100,7 +100,9 @@ async function run() {
         app.get("/payments/:email", async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
-            const sortOptions = { date: -1 }; // Sort in descending order based on the "createdAt" field
+            const sortOptions = { date: -1 }; 
+            
+            // Sort in descending order based on the "createdAt" field
             const result = await paymentsCollection.find(query).sort(sortOptions).toArray();
             res.send(result);
         });
