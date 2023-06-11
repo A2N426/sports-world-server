@@ -91,17 +91,11 @@ async function run() {
         })
 
         // payment history get
-        // app.get("/payments/:email", async (req, res) => {
-        //     const email = req.params.email;
-        //     const query = { email: email };
-        //     const result = await paymentsCollection.find(query).toArray();
-        //     res.send(result);
-        // })
         app.get("/payments/:email", async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
-            const sortOptions = { date: -1 }; 
-            
+            const sortOptions = { date: -1 };
+
             // Sort in descending order based on the "createdAt" field
             const result = await paymentsCollection.find(query).sort(sortOptions).toArray();
             res.send(result);
@@ -114,9 +108,26 @@ async function run() {
             res.send({ token })
         })
 
+        // post classes
+        app.post("/classes", async (req, res) => {
+            const singleClass = req.body;
+            const result = await classesCollection.insertOne(singleClass);
+            res.send(result);
+        })
+
         // get classes
         app.get("/classes", async (req, res) => {
-            const result = await classesCollection.find().toArray();
+            const query = {status : "approved"}
+            const result = await classesCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // app get instructor classes
+        app.get("/myClasses/:email",async(req,res)=>{
+            const email = req.params.email;
+            console.log(email);
+            const query = { instructorEmail: email };
+            const result = await classesCollection.find(query).toArray();
             res.send(result);
         })
 
@@ -211,7 +222,8 @@ async function run() {
             const options = { upsert: true }
             const updateDoc = {
                 $set: {
-                    available_seats: available_seats.current_seats
+                    available_seats: available_seats.current_seats,
+                    students: available_seats.TotalEnrolledStudents
                 }
             }
             const result = await classesCollection.updateOne(query, updateDoc, options);
